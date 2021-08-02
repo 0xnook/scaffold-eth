@@ -1,93 +1,88 @@
-# 🏗 Scaffold-ETH
+# 🌊 Superfluid
 
-> everything you need to build on Ethereum! 🚀
+## Tutorial info
+**Author:** nook
+**Source code:** TODO
+**Intended audience:** Beginners
+**Topics:** Token streaming, Superfluid
 
-🧪 Quickly experiment with Solidity using a frontend that adapts to your smart contract:
+## Introduction
+A component that uses [@superfluid-finance/js-sdk](https://github.com/superfluid-finance/superfluid-protocol-docs/blob/master/protocol-tutorials/frontend-+-nodejs.md) to upgrade/downgrade super tokens, create new flows, and start streaming money in real time 🏄. 
 
-![image](https://user-images.githubusercontent.com/2653167/124158108-c14ca380-da56-11eb-967e-69cde37ca8eb.png)
+## Prerequesites
+Make sure you have some kovan ETH.
 
-
-# 🏄‍♂️ Quick Start
-
-Prerequisites: [Node](https://nodejs.org/en/download/) plus [Yarn](https://classic.yarnpkg.com/en/docs/install/) and [Git](https://git-scm.com/downloads)
-
-> clone/fork 🏗 scaffold-eth:
-
+## Quickstart
+Clone the repo
 ```bash
-git clone https://github.com/austintgriffith/scaffold-eth.git
+git clone https://github.com/0xnook/scaffold-eth.git
 ```
 
-> install and start your 👷‍ Hardhat chain:
-
+Get dependencies
 ```bash
-cd scaffold-eth
 yarn install
-yarn chain
 ```
 
-> in a second terminal window, start your 📱 frontend:
+Edit 'packages/react-app/src/App.jsx' with one of the [available networks](https://docs.superfluid.finance/superfluid/networks/networks) (Kovan by default)
+```js
+...
+const targetnetwork = networks.kovan; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+...
+```
 
+
+Start the frontend, and open [http://localhost:3000](http://localhost:3000)
 ```bash
-cd scaffold-eth
 yarn start
 ```
 
-> in a third terminal window, 🛰 deploy your contract:
+## Superfluid component
+`<Superfluid />`: A dashboard to create and view Superfluid money streams. 
 
-```bash
-cd scaffold-eth
-yarn deploy
+The superfluid component is already initialized for you in 'packages/react-app/src/App.jsx'
+
+
+### Props
+- address: the current user address or ENS  
+- provider: web3 provider
+- tokens: the list desired tokens
+
+
+```
+<Superfluid
+      address={address}
+      provider={injectedProvider}
+      tokens={["fDAI", "fUSDC"]}
+      />
 ```
 
-🔏 Edit your smart contract `YourContract.sol` in `packages/hardhat/contracts`
+The superfluid/js-sdk will take care of calling the resolver contract and retrieve the corresponding token contracts for the selected network, so no need to manually provide the contract addresses.
 
-📝 Edit your frontend `App.jsx` in `packages/react-app/src`
-
-💼 Edit your deployment scripts in `packages/hardhat/deploy`
-
-📱 Open http://localhost:3000 to see the app
-
-# 📚 Documentation
-
-Documentation, tutorials, challenges, and many more resources, visit: [docs.scaffoldeth.io](https://docs.scaffoldeth.io)
-
-# 🔭 Learning Solidity
-
-📕 Read the docs: https://docs.soliditylang.org
-
-📚 Go through each topic from [solidity by example](https://solidity-by-example.org) editing `YourContract.sol` in **🏗 scaffold-eth**
-
-- [Primitive Data Types](https://solidity-by-example.org/primitives/)
-- [Mappings](https://solidity-by-example.org/mapping/)
-- [Structs](https://solidity-by-example.org/structs/)
-- [Modifiers](https://solidity-by-example.org/function-modifier/)
-- [Events](https://solidity-by-example.org/events/)
-- [Inheritance](https://solidity-by-example.org/inheritance/)
-- [Payable](https://solidity-by-example.org/payable/)
-- [Fallback](https://solidity-by-example.org/fallback/)
-
-📧 Learn the [Solidity globals and units](https://solidity.readthedocs.io/en/v0.6.6/units-and-global-variables.html)
-
-# 🛠 Buidl
-
-Check out all the [active branches](https://github.com/austintgriffith/scaffold-eth/branches/active), [open issues](https://github.com/austintgriffith/scaffold-eth/issues), and join/fund the 🏰 [BuidlGuidl](https://BuidlGuidl.com)!
+### Fake token faucet
+TODO
 
 
-# 💬 Support Chat
+### Adding a flow recipient and sending a stream
+After adquiring fake tokens, they can be upgraded to super tokens, to do this
+first make a token approval transaction by clicking the `Approve unlimited spending` button. 
 
-Join the telegram [support chat 💬](https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA) to ask questions and find others building with 🏗 scaffold-eth!
+After approving, enter the desired amount to upgrade and click the `Upgrade to super token` button.
 
----
+<img src="https://siasky.net/bAAWH6fHp9zGtMutEUkc8Ngs89cdY9N-bn1VJw34SqlCTw" width="250">
 
-🎛 Any web3 dev environment is complex, that's why 🏗 Scaffold-ETH comes with everything you need, already working together:
 
-- Hardhat for your local blockchain, deploying, and testing smart contracts.
-- React for building a frontend, using many useful pre-made components and hooks.
-- Ant for your UI. (You can easily changed to another library you prefer)
-- Surge / S3 / IPFS for publishing your app.
-- Tenderly / The Graph / Etherscan / Infura / Blocknative for infrastructure.
-- Support for L2 / Sidechains like Optimism and Arbitrum.
+### Add a new stream recipient
+Lets create Bob as our first recipient. To do this enter Bob's name and a valid ethereum address in the form shown below.
 
----
+After adding Bob as a recipient, a new panel with his flows will appear.
 
-🙏 Please check out our [Gitcoin grant](https://gitcoin.co/grants/2851/scaffold-eth) too!
+<img src="https://siasky.net/BAAzSLcGV69el6FV6a6JKPY4kGmGcO53dCqWLEW-sGnP8g" width="250">
+
+### Send a new flow to Bob
+Lets stream $1000 fDAI to Bob for a month.
+
+To start the new flow, select fDAI from the dropdown shown below, and set the flow rate to 385802469135802, this corresponds to $1000 fDAI per month. Finally, click the `Create new flow` button and sign the transaction to start the stream.
+
+After doing this, you can see the new flow in the fDAI outflows section of your flow panel, and as an fDAI inflow on Bob's pannel.
+
+<img src="https://siasky.net/JADoxvdobuSovhgxE9hCIDFjpjWhCR19RjWVTszTG-n7gQ" width="250">
