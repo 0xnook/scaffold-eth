@@ -419,19 +419,13 @@ export default function Superfluid(
   };
 
   const onFlowSubmit = async (values) => {
-    let flowRate = 0;
-    if(values.flowRate) {
-      flowRate = values.flowRate;
-    }
-
-
     const recipientAddress = values.sfRecipient[values.token].address;
 
 
     try {
       await sfUser[values.token].flow({
         recipient: recipientAddress,
-        flowRate
+        flowRate: values.flowRate.toString()
       })
     } catch (err) {
       onFlowFailed(err.toString());
