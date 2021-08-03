@@ -91,7 +91,7 @@ function CashflowDisplayer({
 }
 
 // form to add a new cashflow recipient
-function RecipientForm({onRecipientSubmit, onRecipientFailed}) {
+function RecipientForm({onRecipientSubmit, onRecipientFailed, mainnetProvider}) {
   return (
     <Form
       name="basic"
@@ -113,7 +113,9 @@ function RecipientForm({onRecipientSubmit, onRecipientFailed}) {
       name="address"
       rules={[{ required: true, message: 'Please input the receipients address' }]}
     >
-      <AddressInput/>
+      <AddressInput
+        ensProvider={mainnetProvider}
+      />
     </Form.Item>
 
 
@@ -240,12 +242,12 @@ function SuperTokenUpgrader({
   }
 
   // handle upgrade token form submit
-  const handleUpgradeSubmit = ({amount, transformType}) => {
+  const handleUpgradeSubmit = ({amount}) => {
     transformToken(amount, "upgrade");
   };
 
   // handle downgrade token form submit
-  const handleDowngradeSubmit = ({amount, transformType}) => {
+  const handleDowngradeSubmit = ({amount}) => {
     transformToken(amount, "downgrade");
   };
   
@@ -322,6 +324,7 @@ export default function Superfluid(
   {
     address,
     provider,
+    mainnetProvider,
     tokens
   }) {
 
@@ -426,18 +429,27 @@ export default function Superfluid(
   const onFlowSubmit = async (values) => {
     const flowRate = values.flowRate || 0;
 
-    await sfUser[values.token].flow({
-      recipient: values.sfRecipient[values.token].address,
-      flowRate
-    })
-    const details = await sfUser[values.token].details();
-    setSfUserDetails(details);
+    try {
+      await sfUser[values.token].flow({
+        recipient: values.sfRecipient[values.token].address,
+        flowRate
+      })
+    } catch (err) {
+      onFlowFailed(err.toString());
+    }
+    
+    try {
+      const details = await sfUser[values.token].details();
+      setSfUserDetails(details);
+    } catch (err) {
+      onFlowFailed("Flow failed ", err.toString());
+    }
     console.log('Success:', values);
   };
 
 
   const onFlowFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
+    console.log('Flow Submit Failed:', errorInfo);
   };
 
   const superTokenUpgraders = [];
@@ -464,6 +476,7 @@ export default function Superfluid(
       {superTokenUpgraders}
 
       <RecipientForm
+       mainnetProvider={mainnetProvider}
        onRecipientSubmit={onRecipientSubmit}
        onRecipientFailed={onRecipientFailed}
        /> 
