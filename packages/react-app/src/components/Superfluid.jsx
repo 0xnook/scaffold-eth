@@ -12,7 +12,7 @@ const { Option } = Select;
 // displays Superfluid inflows, outflows and netflows for a given user and token
 function CashflowDisplayer({
   sfUser,
-  address,
+  mainnetProvider,
   tokens
 }) {
 
@@ -63,9 +63,9 @@ function CashflowDisplayer({
               template.push(
                 <div>
                   <h4>Sender</h4>
-                  <Address address={flow.sender} fontSize={16}/>
+                  <Address ensProvider={mainnetProvider} address={flow.sender} fontSize={16}/>
                   <h4>Receiver</h4>
-                  <Address address={flow.receiver} fontSize={16}/>
+                  <Address ensProvider={mainnetProvider} address={flow.receiver} fontSize={16}/>
                   <h4>Flow Rate</h4>
                   {flow.flowRate}
                 </div>
@@ -534,7 +534,7 @@ recipientBalances.push(
 
       template.push(
         <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, marginTop: 64, alignSelf:"flex-start" }}>
-          <Address address={address}/>
+          <Address ensProvider={mainnetProvider} address={address}/>
 
           <FlowForm
             tokens={tokens}
