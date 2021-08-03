@@ -12,7 +12,7 @@ const { Option } = Select;
 // displays Superfluid inflows, outflows and netflows for a given user and token
 function CashflowDisplayer({
   sfUser,
-  name,
+  address,
   tokens
 }) {
 
@@ -53,7 +53,7 @@ function CashflowDisplayer({
           const flows = details[token].cfa.flows[flowType];
           template.push(
             <div>
-              <h3>{name} {token} {flowType}</h3>
+              <h3>{token} {flowType}</h3>
               {errMsg}
             </div>
           );
@@ -79,7 +79,7 @@ function CashflowDisplayer({
 
         template.push(
           <div>
-            <h3>{name} {token} netflow</h3>
+            <h3>{token} netflow</h3>
             {details[token].cfa.netFlow}
             <Divider />
           </div>
@@ -100,14 +100,7 @@ function RecipientForm({onRecipientSubmit, onRecipientFailed, mainnetProvider}) 
       onFinish={onRecipientSubmit}
       onFinishFailed={onRecipientFailed}
       requiredMark={false}>
-    <Form.Item
-      label="Name"
-      name="name"
-      rules={[{ required: true }]}
-    >
-      <Input />
-    </Form.Item>
-
+    
     <Form.Item
       label="Address"
       name="address"
@@ -383,7 +376,6 @@ export default function Superfluid(
           });
         }
       }
-      console.log("target: ", sfUser)
     }    
   }, [tokenContracts]);
 
@@ -399,11 +391,11 @@ export default function Superfluid(
               token: superTokenAddress
             });
             setSfRecipients((prevState) => {
-              const prevRecipient = prevState[recipient.name];
+              const prevRecipient = prevState[recipient.address];
               return (
                 {
                   ...prevState,
-                  [recipient.name]: {
+                  [recipient.address]: {
                     ...prevRecipient,
                     [token]: recipientUser,
                   }
@@ -427,20 +419,40 @@ export default function Superfluid(
   };
 
   const onFlowSubmit = async (values) => {
-    const flowRate = values.flowRate || 0;
+    let flowRate = 0;
+    if(values.flowRate) {
+      flowRate = values.flowRate;
+    }
+
+
+    const recipientAddress = values.sfRecipient[values.token].address;
+
 
     try {
       await sfUser[values.token].flow({
-        recipient: values.sfRecipient[values.token].address,
+        recipient: recipientAddress,
         flowRate
       })
     } catch (err) {
       onFlowFailed(err.toString());
     }
     
+    // force state update
     try {
-      const details = await sfUser[values.token].details();
-      setSfUserDetails(details);
+      await sfUser[values.token].details();
+      await sfRecipients[recipientAddress][values.token].details();
+      setSfUser({...sfUser});
+      setSfRecipients((prevState) => {
+       const prevRecipient = prevState[recipientAddress];
+        return (
+                {
+                  ...prevState,
+                  [recipientAddress]: {
+                    ...prevRecipient,
+                  }
+                }
+              )
+      });
     } catch (err) {
       onFlowFailed("Flow failed ", err.toString());
     }
@@ -492,11 +504,12 @@ export default function Superfluid(
   );
 
   if (sfRecipients) {
-    for (const [name, sfRecipient] of Object.entries(sfRecipients)) {
+    for (const [address, sfRecipient] of Object.entries(sfRecipients)) {
       
       const recipientBalances = [];
       for (const token of tokens) {
-        recipientBalances.push(
+        if (sfRecipient[token]) {
+recipientBalances.push(
           <div>
           <TokenBalance 
             img={token}
@@ -515,13 +528,15 @@ export default function Superfluid(
              />
           </div>
         );
-      }
+
+        }
+              }
 
       template.push(
         <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, marginTop: 64, alignSelf:"flex-start" }}>
-          <h2>{name}</h2>
+          <Address address={address}/>
+
           <FlowForm
-            name={name}
             tokens={tokens}
             sfRecipient={sfRecipient}
             onFlowSubmit={onFlowSubmit}
@@ -533,7 +548,7 @@ export default function Superfluid(
           <Divider/>
 
           <CashflowDisplayer
-            name={name}
+            address={address}
             tokens={tokens}
             sfUser={sfRecipient}/>
         </div>
