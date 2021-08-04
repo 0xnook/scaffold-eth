@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import SuperfluidSDK from "@superfluid-finance/js-sdk";
-import { Button, Divider, Input, Form, InputNumber, Select } from "antd";
-import { utils } from "ethers";
+import { Button, Divider, Form, InputNumber, Select } from "antd";
+import { utils, Contract } from "ethers";
 
 import { Address, AddressInput, TokenBalance } from "../components";
+import { useContractLoader } from "../hooks";
 import { Transactor } from "../helpers";
 
 const { Option } = Select;
@@ -146,6 +147,103 @@ function FlowForm({ tokens, sfRecipient, onFlowSubmit, onFlowFailed }) {
   );
 }
 
+function FakeTokenMinter({ provider, address, chainId, token, tokenContracts }) {
+  if (!token || !tokenContracts[token] || !provider || !address || !chainId) {
+    return <h1>...</h1>;
+  }
+
+  // fakeToken contracts include a mint function that is not present in the abi returned by the js-sdk
+  const mintABI = [
+    {
+      inputs: [
+        {
+          internalType: "address",
+          name: "account",
+          type: "address",
+        },
+        {
+          internalType: "uint256",
+          name: "amount",
+          type: "uint256",
+        },
+      ],
+      name: "mint",
+      outputs: [
+        {
+          internalType: "bool",
+          name: "",
+          type: "bool",
+        },
+      ],
+      stateMutability: "nonpayable",
+      type: "function",
+    },
+  ];
+
+  const mintContractMetadata = {
+    [chainId]: {
+      contracts: {
+        [token]: {
+          address: tokenContracts[token].address,
+          abi: mintABI,
+        },
+      },
+    },
+  };
+
+  const mintContract = useContractLoader(provider, { chainId, externalContracts: mintContractMetadata });
+
+  const handleMintSubmit = async ({ amount }) => {
+    const decimals = await tokenContracts[token].decimals();
+    console.log("token decimals: ", decimals);
+
+    const parsedAmount = utils.parseUnits(amount.toString(), 18);
+
+    // const mintContract = new Contract(tokenContract.address, mintABI);
+
+    console.log(parsedAmount);
+    const contractCall = mintContract[token].mint(address, parsedAmount);
+
+    // keep track of transaction
+    const tx = Transactor(provider);
+
+    tx(contractCall, update => {
+      console.log("📡 Transaction Update:", update);
+      if (update && (update.status === "confirmed" || update.status === 1)) {
+        console.log(" 🍾 Transaction " + update.hash + " finished!");
+        console.log(
+          " ⛽️ " +
+            update.gasUsed +
+            "/" +
+            (update.gasLimit || update.gas) +
+            " @ " +
+            parseFloat(update.gasPrice) / 1000000000 +
+            " gwei",
+        );
+      }
+    }).then(result => {
+      console.log(result);
+    });
+  };
+
+  const handleError = errMsg => {
+    console.log("Failed:", errMsg);
+  };
+
+  return (
+    <Form layout="vertical" onFinish={handleMintSubmit} onFinishFailed={handleError} requiredMark={false}>
+      <h3>{token}</h3>
+      <Form.Item name="amount" initialValue={0}>
+        <InputNumber />
+      </Form.Item>
+
+      <Form.Item>
+        <Button htmlType="submit">mint {token}</Button>
+      </Form.Item>
+    </Form>
+  );
+}
+
 // Retrieves and displays passed token and supertoken balance, and proivdes
 // form to wrap/unwrap them
 function SuperTokenUpgrader({ address, token, tokenContracts, superTokenContracts, provider }) {
@@ -183,9 +281,9 @@ function SuperTokenUpgrader({ address, token, tokenContracts, superTokenContract
 
   const transformToken = (amount, transformType) => {
     // parse user submitted amount
-    const parsedBalance = utils.parseUnits(amount.toString(), 18);
+    const parsedAmount = utils.parseUnits(amount.toString(), 18);
     // retrieve supertoken contract object
-    const contractCall = superTokenContracts[token + "x"][transformType](parsedBalance);
+    const contractCall = superTokenContracts[token + "x"][transformType](parsedAmount);
 
     // create and execute transaction
     const tx = Transactor(provider);
@@ -227,6 +325,7 @@ function SuperTokenUpgrader({ address, token, tokenContracts, superTokenContract
   template.push(
     <div>
       <h3>{token}: </h3>
+
       <TokenBalance img={token} name={token} provider={provider} address={address} contracts={tokenContracts} />
       <Form
         name="basic"
@@ -269,11 +368,10 @@ function SuperTokenUpgrader({ address, token, tokenContracts, superTokenContract
 }
 
 // TODO: need to do free up (the sdk?) when exiting component to avoid memory leak
-export default function Superfluid({ address, provider, mainnetProvider, tokens }) {
+export default function Superfluid({ address, provider, mainnetProvider, tokens, chainId }) {
   const [sfSDK, setSfSDK] = useState();
   const [recipients, setRecipients] = useState([]);
   const [sfUser, setSfUser] = useState({});
-  const [sfUserDetails, setSfUserDetails] = useState({});
   const [sfRecipients, setSfRecipients] = useState({});
   const [tokenContracts, setTokenContracts] = useState({});
   const [superTokenContracts, setSuperTokenContracts] = useState();
@@ -400,8 +498,19 @@ export default function Superfluid({ address, provider, mainnetProvider, tokens 
     console.log("Flow Submit Failed:", errorInfo);
   };
 
+  const fakeTokenMinters = [];
   const superTokenUpgraders = [];
   for (const token of tokens) {
+    fakeTokenMinters.push(
+      <FakeTokenMinter
+        provider={provider}
+        address={address}
+        chainId={chainId}
+        token={token}
+        tokenContracts={tokenContracts}
+      />,
+    );
+
     superTokenUpgraders.push(
       <SuperTokenUpgrader
         name="Your"
@@ -420,6 +529,11 @@ export default function Superfluid({ address, provider, mainnetProvider, tokens 
     <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, marginTop: 64, marginBottom: 64 }}>
       <h1>Superfluid </h1>
       <p style={{ color: "red" }}>{initializationError}</p>
+
+      <h3>Fake token faucet</h3>
+
+      {fakeTokenMinters}
+
       <Divider />
       {superTokenUpgraders}
 
@@ -430,7 +544,7 @@ export default function Superfluid({ address, provider, mainnetProvider, tokens 
       />
 
       <Divider />
-      <CashflowDisplayer name={"Your"} tokens={tokens} sfUser={sfUser} sfUserDetails={sfUserDetails} />
+      <CashflowDisplayer name={"Your"} tokens={tokens} sfUser={sfUser} />
     </div>,
   );
 
