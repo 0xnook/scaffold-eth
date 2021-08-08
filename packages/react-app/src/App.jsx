@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
 import "./App.css";
-import { Account, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch } from "./components";
+import { Account, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch, Superfluid } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
 import {
@@ -44,7 +44,7 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-const targetNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const targetNetwork = NETWORKS.kovan; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = true;
@@ -391,6 +391,16 @@ function App(props) {
               YourContract
             </Link>
           </Menu.Item>
+          <Menu.Item key="/superfluid">
+            <Link
+              onClick={() => {
+                setRoute("/superfluid");
+              }}
+              to="/superfluid"
+            >
+              Superfluid
+            </Link>
+          </Menu.Item>
           <Menu.Item key="/hints">
             <Link
               onClick={() => {
@@ -447,6 +457,13 @@ function App(props) {
               provider={localProvider}
               address={address}
               blockExplorer={blockExplorer}
+            />
+          </Route>
+          <Route path="/superfluid">
+            <Superfluid
+              address={address}
+              provider={injectedProvider}
+              tokens={["fDAI", "fUSDC"]}
             />
           </Route>
           <Route path="/hints">
