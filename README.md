@@ -69,9 +69,22 @@ first make a token approval transaction by clicking the `Approve unlimited spend
 After approving, enter the desired amount to upgrade and click the `Upgrade to super token` button.
 
 <img src="https://siasky.net/bAAWH6fHp9zGtMutEUkc8Ngs89cdY9N-bn1VJw34SqlCTw" width="250">
-
   
- - 🚤  [Follow the full Ethereum Speed Run](https://medium.com/@austin_48503/%EF%B8%8Fethereum-dev-speed-run-bd72bcba6a4c)
+
+The superfluid/js-sdk will take care of calling the resolver contract and retrieve the corresponding token contracts for the selected network, so no need to manually provide the contract addresses.
+
+### Fake token faucet
+TODO
+
+
+### Adding a flow recipient and sending a stream
+After adquiring fake tokens, they can be upgraded to super tokens, to do this
+first make a token approval transaction by clicking the `Approve unlimited spending` button. 
+
+After approving, enter the desired amount to upgrade and click the `Upgrade to super token` button.
+
+<img src="https://siasky.net/bAAWH6fHp9zGtMutEUkc8Ngs89cdY9N-bn1VJw34SqlCTw" width="250">
+>>>>>>> e9716ff0abf6160323a1fe593df93f6dd6f5ab16
 
 
 ### Add a new stream recipient
