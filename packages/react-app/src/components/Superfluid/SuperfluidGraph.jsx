@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
 import { gql, useQuery } from "@apollo/client";
 import { useContractLoader } from "../../hooks";
+import FakeTokenMinters from "./FakeTokenMinter";
 
 import {superTokenABI, fakeTokenABI} from "./abis";
 
@@ -45,7 +46,7 @@ const GET_TOKENS = gql`
     }
   `
 
-export default function SuperfluidGraph({provider, tokenList, chainId}) {
+export default function SuperfluidGraph({provider, tokenList, chainId, address}) {
   // append x to every token from list
   const superTokenList = tokenList.map(token => token+"x");
 
@@ -72,6 +73,13 @@ export default function SuperfluidGraph({provider, tokenList, chainId}) {
           {JSON.stringify(token, 4)}
         </h1>
       ))}
+
+      <FakeTokenMinters 
+        provider={provider}
+        address={address}
+        tokens={tokenList}
+        tokenContracts={tokenContracts}
+      />
     </div>
   )
 }

@@ -19,13 +19,18 @@ export default function Superfluid({
          chainId={chainId}
       />
    );
+
    return (
       <Super
-         address={address}
-         provider={provider}
          mainnetProvider={mainnetProvider}
+         address={address}
+         network={network}
+         provider={provider}
+         tokenList={tokens}
          chainId={chainId}
-         tokens={tokens}
       />
-      )
+   )
 }
+
+
+

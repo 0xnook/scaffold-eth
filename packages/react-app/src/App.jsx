@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { BrowserRouter, Link, Route, Switch } from "react-router-dom";
 import Web3Modal from "web3modal";
 import "./App.css";
-import { Account, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch, Superfluid } from "./components";
+import { Account, Contract, Faucet, GasGauge, Header, Ramp, ThemeSwitch, Superfluid  } from "./components";
 import { INFURA_ID, NETWORK, NETWORKS } from "./constants";
 import { Transactor } from "./helpers";
 import {
@@ -15,7 +15,7 @@ import {
   useContractLoader,
   useContractReader,
   useEventListener,
-  useExchangePrice,
+  // useExchangePrice,
   useGasPrice,
   useOnBlock,
   useUserSigner,
@@ -138,7 +138,7 @@ function App(props) {
   };
 
   /* 💵 This hook will get the price of ETH from 🦄 Uniswap: */
-  const price = useExchangePrice(targetNetwork, mainnetProvider);
+  // const price = useExchangePrice(targetNetwork, mainnetProvider);
 
   /* 🔥 This hook will get the price of Gas from ⛽️ EtherGasStation */
   const gasPrice = useGasPrice(targetNetwork, "fast");
@@ -149,6 +149,7 @@ function App(props) {
     async function getAddress() {
       if (userSigner) {
         const newAddress = await userSigner.getAddress();
+        console.log("adamant ", address);
         setAddress(newAddress);
       }
     }
@@ -191,12 +192,12 @@ function App(props) {
   });
 
   // Then read your DAI balance like:
-  const myMainnetDAIBalance = useContractReader(mainnetContracts, "DAI", "balanceOf", [
-    "0x34aA3F359A9D614239015126635CE7732c18fDF3",
-  ]);
+  // const myMainnetDAIBalance = useContractReader(mainnetContracts, "DAI", "balanceOf", [
+  //   "0x34aA3F359A9D614239015126635CE7732c18fDF3",
+  // ]);
 
   // keep track of a variable from the contract in the local React state:
-  const purpose = useContractReader(readContracts, "YourContract", "purpose");
+  // const purpose = useContractReader(readContracts, "YourContract", "purpose");
 
   // 📟 Listen for broadcast events
   const setPurposeEvents = useEventListener(readContracts, "YourContract", "SetPurpose", localProvider, 1);
@@ -230,7 +231,7 @@ function App(props) {
       console.log("💵 yourMainnetBalance", yourMainnetBalance ? ethers.utils.formatEther(yourMainnetBalance) : "...");
       console.log("📝 readContracts", readContracts);
       console.log("🌍 DAI contract on mainnet:", mainnetContracts);
-      console.log("💵 yourMainnetDAIBalance", myMainnetDAIBalance);
+      // console.log("💵 yourMainnetDAIBalance", myMainnetDAIBalance);
       console.log("🔐 writeContracts", writeContracts);
     }
   }, [
@@ -401,6 +402,16 @@ function App(props) {
               Superfluid
             </Link>
           </Menu.Item>
+          <Menu.Item key="/superfluid-old">
+            <Link
+              onClick={() => {
+                setRoute("/superfluid-old");
+              }}
+              to="/superfluid-old"
+            >
+              Superfluid
+            </Link>
+          </Menu.Item>
           <Menu.Item key="/hints">
             <Link
               onClick={() => {
@@ -462,6 +473,7 @@ function App(props) {
           <Route path="/superfluid">
             <Superfluid
               address={address}
+              mainnetProvider={mainnetProvider}
               provider={injectedProvider}
               tokens={["fDAI", "fUSDC"]}
             />
@@ -471,23 +483,23 @@ function App(props) {
               address={address}
               yourLocalBalance={yourLocalBalance}
               mainnetProvider={mainnetProvider}
-              price={price}
+              // price={price}
             />
           </Route>
           <Route path="/exampleui">
-            <ExampleUI
-              address={address}
-              userSigner={userSigner}
-              mainnetProvider={mainnetProvider}
-              localProvider={localProvider}
-              yourLocalBalance={yourLocalBalance}
-              price={price}
-              tx={tx}
-              writeContracts={writeContracts}
-              readContracts={readContracts}
-              purpose={purpose}
-              setPurposeEvents={setPurposeEvents}
-            />
+            {/* <ExampleUI */}
+            {/*   address={address} */}
+            {/*   userSigner={userSigner} */}
+            {/*   mainnetProvider={mainnetProvider} */}
+            {/*   localProvider={localProvider} */}
+            {/*   yourLocalBalance={yourLocalBalance} */}
+            {/*   price={price} */}
+            {/*   tx={tx} */}
+            {/*   writeContracts={writeContracts} */}
+            {/*   readContracts={readContracts} */}
+            {/*   purpose={purpose} */}
+            {/*   setPurposeEvents={setPurposeEvents} */}
+            {/* /> */}
           </Route>
           <Route path="/mainnetdai">
             <Contract
@@ -529,7 +541,7 @@ function App(props) {
           localProvider={localProvider}
           userSigner={userSigner}
           mainnetProvider={mainnetProvider}
-          price={price}
+          // price={price}
           web3Modal={web3Modal}
           loadWeb3Modal={loadWeb3Modal}
           logoutOfWeb3Modal={logoutOfWeb3Modal}
@@ -542,7 +554,7 @@ function App(props) {
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
         <Row align="middle" gutter={[4, 4]}>
           <Col span={8}>
-            <Ramp price={price} address={address} networks={NETWORKS} />
+             {/* <Ramp price={price} address={address} networks={NETWORKS} /> */}
           </Col>
 
           <Col span={8} style={{ textAlign: "center", opacity: 0.8 }}>
@@ -569,7 +581,7 @@ function App(props) {
             {
               /*  if the local provider has a signer, let's show the faucet:  */
               faucetAvailable ? (
-                <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} />
+                {/* <Faucet localProvider={localProvider} price={price} ensProvider={mainnetProvider} /> */}
               ) : (
                 ""
               )
