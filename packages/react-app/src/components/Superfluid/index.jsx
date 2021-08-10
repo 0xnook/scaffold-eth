@@ -4,7 +4,6 @@ import SuperfluidGraph from "./SuperfluidGraph";
 
 export default function Superfluid({
    address,
-   network,
    provider,
    chainId,
    tokens,
@@ -13,10 +12,10 @@ export default function Superfluid({
 
    return (
      <SuperfluidGraph
-         network={network}
-         provider={provider}
-         tokenList={tokens}
-         chainId={chainId}
+        address={address}
+        provider={provider}
+        tokenList={tokens}
+        chainId={chainId}
       />
    );
 

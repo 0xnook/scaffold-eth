@@ -6,12 +6,28 @@ import { utils } from "ethers";
 import { useContractLoader } from "../../hooks";
 import { Transactor } from "../../helpers";
 
-export function SingleTokenMinter({provider, token, tokenContract}) {
+/*
+  ~ What it does? ~
+
+  Allows you to mint fake tokens, like fDAI, using a simple form.
+  Useful to for testing Superfluid
+
+  ~ How can I use? ~
+
+  <FakeTokenMinter
+    address={address}
+    provider={injectedProvider}
+    token="fDAI"
+    tokenContract={tokenContract}
+  />
+
+*/
+export function FakeTokenMinter({provider, address, token, tokenContract}) {
   const [errMsg, setErrMsg] = useState("");
 
   // Handle fake token minting form submit
   const handleMintSubmit = async ({ amount }) => {
-    const decimals = await tokenContracts[token].decimals();
+    const decimals = await tokenContract.decimals();
     console.log("token decimals: ", decimals);
 
     const parsedAmount = utils.parseUnits(amount.toString(), 18);
@@ -20,7 +36,7 @@ export function SingleTokenMinter({provider, token, tokenContract}) {
     console.log(parsedAmount);
     
     // Execute mint tx
-    const contractCall = tokenContract[token].mint(address, parsedAmount);
+    const contractCall = tokenContract.mint(address, parsedAmount);
 
     // keep track of transaction status
     const tx = Transactor(provider);
@@ -50,8 +66,8 @@ export function SingleTokenMinter({provider, token, tokenContract}) {
   };
 
   return (
-    <Form layout="vertical" onFinish={handleMintSubmit} onFinishFailed={handleError} requiredMark={false}>
-      <h3>{token}</h3>
+    <Form onFinish={handleMintSubmit} onFinishFailed={handleError} requiredMark={false}>
+      <h4>{token}</h4>
       <Form.Item name="amount" initialValue={0}>
         <InputNumber />
       </Form.Item>
@@ -65,24 +81,51 @@ export function SingleTokenMinter({provider, token, tokenContract}) {
 }
 
 export default function FakeTokenMinters({provider, address, tokenList, tokenContracts}) {
-  if (!tokenContracts || !provider || !address) {
+  if (!tokenContracts || !provider || !address || !tokenList) {
     console.log("ft contracts: ", tokenContracts);
     console.log("ft provider: ", provider);
     console.log("ft address: ", address);
+    console.log("ft tokenList: ", tokenList);
     return <h1>...</h1>;
   }
 
+  const style = {
+    display: "flex",
+    flexFlow: "row wrap",
+    margin: "auto",
+    justifyContent: "center",
+    gap: "2rem"
+  }
+
+  return (
+    <div>
+      <h2>Mint Fake tokens</h2>
+      <div style={style}>
+        {tokenList.map(token => (
+          <FakeTokenMinter
+            address={address}
+            key={"minter" + token}
+            provider={provider}
+            token={token}
+            tokenContract={tokenContracts[token]}
+          /> 
+        ))}
+      </div>
+   </div>
+  )
   const template = [];
-  for(const token of tokens) {
+  for(const token of tokenList) {
     template.push(
-      <SingleTokenMinter
+      <FakeTokenMinter
+        address={address}
         key={"minter" + token}
         provider={provider}
-        tokenList={tokenList}
+        token={token}
         tokenContract={tokenContracts[token]}
       />
     )
   }
+  return template;
 }
 
 
