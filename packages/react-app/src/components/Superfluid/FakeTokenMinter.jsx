@@ -25,15 +25,15 @@ import { Transactor } from "../../helpers";
 export function FakeTokenMinter({provider, address, token, tokenContract}) {
   const [errMsg, setErrMsg] = useState("");
 
+  if (!tokenContract) {
+    return <h1>...</h1>;
+  }
+
   // Handle fake token minting form submit
   const handleMintSubmit = async ({ amount }) => {
     const decimals = await tokenContract.decimals();
-    console.log("token decimals: ", decimals);
 
-    const parsedAmount = utils.parseUnits(amount.toString(), 18);
-
-
-    console.log(parsedAmount);
+    const parsedAmount = utils.parseUnits(amount.toString(), decimals);
     
     // Execute mint tx
     const contractCall = tokenContract.mint(address, parsedAmount);
@@ -82,10 +82,6 @@ export function FakeTokenMinter({provider, address, token, tokenContract}) {
 
 export default function FakeTokenMinters({provider, address, tokenList, tokenContracts}) {
   if (!tokenContracts || !provider || !address || !tokenList) {
-    console.log("ft contracts: ", tokenContracts);
-    console.log("ft provider: ", provider);
-    console.log("ft address: ", address);
-    console.log("ft tokenList: ", tokenList);
     return <h1>...</h1>;
   }
 

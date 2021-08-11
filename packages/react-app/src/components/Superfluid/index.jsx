@@ -9,13 +9,13 @@ export default function Superfluid({
    tokens,
    mainnetProvider
 }) {
-
    return (
      <SuperfluidGraph
         address={address}
         provider={provider}
         tokenList={tokens}
         chainId={chainId}
+        mainnetProvider={mainnetProvider}
       />
    );
 

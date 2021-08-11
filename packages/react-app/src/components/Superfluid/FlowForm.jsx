@@ -7,7 +7,7 @@ const { Option } = Select;
 export default function FlowForm({ tokens, sfRecipient, onFlowSubmit, onFlowFailed }) {
   const tokenOptions = [];
   for (const token of tokens) {
-    tokenOptions.push(<Option value={token}>{token + "x"}</Option>);
+    tokenOptions.push(<Option value={token}>{token}</Option>);
   }
   return (
     <Form layout="vertical" onFinish={onFlowSubmit} onFinishFailed={onFlowFailed} requiredMark={false}>
