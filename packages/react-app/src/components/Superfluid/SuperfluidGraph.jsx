@@ -12,11 +12,11 @@ import { useThemeSwitcher } from "react-css-theme-switcher";
 import {superTokenABI, fakeTokenABI} from "./abis";
 import FakeTokenMinters from "./FakeTokenMinter";
 import {UserCashflows} from "./Cashflows";
+import {SuperTokenUpgraders} from "./SuperTokenUpgrader";
 import RecipientForm from "./RecipientForm";
 
 
 import SuperfluidLogo from "./superfluidLogo.svg";
-
 
 
 // returns a dictionary of super and fake tokens with their address and ABI
@@ -153,26 +153,7 @@ export default function SuperfluidGraph({provider, tokenList, chainId, address, 
         />
 
         <Divider/>
-        <h1>Balances</h1>
-        {tokenList.map(token => (
-          <div key={"owner-balances" + token }>
-            <TokenBalance
-              img={token}
-              name={token}
-              provider={provider}
-              address={address}
-              contracts={tokenContracts}
-            />
-            <TokenBalance
-              img={token + "x"}
-              name={token + "x"}
-              provider={provider}
-              address={address}
-              contracts={tokenContracts}
-            />
-          </div>
-        ))}
-        <Divider/>
+
         <FakeTokenMinters 
           provider={provider}
           address={address}
@@ -180,6 +161,16 @@ export default function SuperfluidGraph({provider, tokenList, chainId, address, 
           tokenContracts={tokenContracts}
         />
         <Divider/>
+
+        <SuperTokenUpgraders
+          provider={provider}
+          address={address}
+          tokenList={tokenList}
+          tokenContracts={tokenContracts}
+        />
+        <Divider/>
+
+
 
         <RecipientForm
           mainnetProvider={mainnetProvider}

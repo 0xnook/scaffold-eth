@@ -14,8 +14,6 @@ export default function FlowForm({ address, recipient, tokenData, sfSDK, contrac
       address,
       token: values.contracts[values.token].address
     });
-
-
     
     try {
       await sfUser.flow({
