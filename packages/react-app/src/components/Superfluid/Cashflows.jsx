@@ -28,7 +28,7 @@ const GET_TOKEN_FLOWS = gql`
   }
 `
 
-export function TokenCashflows({address, token, tokenAddress, mainnetProvider, inflows, outflows, contracts}) {
+export function TokenCashflows({address, token, mainnetProvider, inflows, outflows, contracts}) {
   if(!address) {
     return <h1>...</h1>;
   }
@@ -96,7 +96,10 @@ export function UserCashflows({balanceAddress, connectedAddress, superTokenList,
   balanceAddress = balanceAddress.toLowerCase();
 
 
-  const { loading, error, data } = useQuery(GET_TOKEN_FLOWS, { variables: {owner: balanceAddress, tokens: superTokenList}});
+  const { loading, error, data } = useQuery(GET_TOKEN_FLOWS, { 
+    variables: {owner: balanceAddress, tokens: superTokenList},
+    pollInterval: 30000,
+  });
 
   if (loading) return 'Loading';
   if (error) return `Error! ${error.message}`;

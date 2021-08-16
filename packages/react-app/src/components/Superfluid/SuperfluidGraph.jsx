@@ -104,7 +104,10 @@ export default function SuperfluidGraph({provider, tokenList, chainId, address, 
   const superTokenList = tokenList.map(token => token+"x");
 
   // fetch data from subgraph
-  const { loading, error, data } = useQuery(GET_TOKENS, { variables: {owner: address, tokens: superTokenList}});
+  const { loading, error, data } = useQuery(GET_TOKENS, { 
+    variables: {owner: address, tokens: superTokenList}, 
+    pollInterval: 30000
+  });
 
   // build dictionary of token addresses and ABIs
   let metadata;
