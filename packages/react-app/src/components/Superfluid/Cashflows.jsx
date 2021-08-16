@@ -1,13 +1,14 @@
 import React from "react";
-import { Divider } from "antd";
-import { Address } from "../../components";
+import { Address, TokenBalance } from "../../components";
 import { gql, useQuery } from "@apollo/client";
 import FlowForm from "./FlowForm";
+
 
 // Query to fetch cash-flows for a given user and tokens
 const GET_TOKEN_FLOWS = gql`
   query getTokenFlows($owner: String!, $tokens: [String!]!) {      
     tokens(where: {symbol_in: $tokens}) {
+      id
       symbol
       outflows: flows(where: {owner: $owner}) {
         id
@@ -27,23 +28,14 @@ const GET_TOKEN_FLOWS = gql`
   }
 `
 
-export function TokenCashflows({address, token, mainnetProvider, inflows, outflows}) {
+export function TokenCashflows({address, token, tokenAddress, mainnetProvider, inflows, outflows, contracts}) {
   if(!address) {
     return <h1>...</h1>;
   }
 
-  const style = {
-    display: "flex",
-    flexDirection: "column",
-    // justifyContent: "space-between"
-  };
-  
-  return (
-    <div>
-
-      <h2>{token} </h2>
-      <h3>Inflows </h3>
-      {inflows.map(flow => (
+  let inflowTemplate = "❌ No inflows";
+  if(inflows.length) {
+    inflowTemplate = inflows.map(flow => (
         <div key={"inflows-" + flow.owner + token}>
           <h4>Sender</h4>
           <Address ensProvider={mainnetProvider} address={flow.owner.id} fontSize={14} />
@@ -55,11 +47,13 @@ export function TokenCashflows({address, token, mainnetProvider, inflows, outflo
           <h4>Flow Rate</h4>
           {flow.flowRate}
         </div>
-      ))}
+      ))
+  }
 
-
-      <h3>Outflows </h3>
-      {outflows.map(flow => (
+  
+  let outflowTemplate = "❌ No outflows";
+  if(outflows.length) {
+    outflowTemplate = outflows.map(flow => (
         <div key={"outflows-" + flow.owner + token}>
           <h4>Sender</h4>
           <Address ensProvider={mainnetProvider} address={address} fontSize={14} />
@@ -72,20 +66,37 @@ export function TokenCashflows({address, token, mainnetProvider, inflows, outflo
           {flow.flowRate}
         </div>
         
-      ))}
+      ))  
+  }
+
+  return (
+    <div>
+      <TokenBalance
+        img={token}
+        name={token}
+        provider={mainnetProvider}
+        address={address}
+        contracts={contracts}
+       />
+
+      <h3>Inflows </h3>
+      {inflowTemplate}
+
+      <h3>Outflows </h3>
+      {outflowTemplate}
     </div>
   );
 }
 
-export function UserCashflows({address, superTokenList, mainnetProvider, isRecipient}) {
-  if(!address) {
+export function UserCashflows({balanceAddress, connectedAddress, superTokenList, mainnetProvider, isRecipient, contracts, sfSDK}) {
+  if(!balanceAddress) {
     return <h1>...</h1>;
   }
   // superfluid subgraph addresses are case sensitive and need to be lowercase
-  address = address.toLowerCase();
+  balanceAddress = balanceAddress.toLowerCase();
 
 
-  const { loading, error, data } = useQuery(GET_TOKEN_FLOWS, { variables: {owner: address, tokens: superTokenList}});
+  const { loading, error, data } = useQuery(GET_TOKEN_FLOWS, { variables: {owner: balanceAddress, tokens: superTokenList}});
 
   if (loading) return 'Loading';
   if (error) return `Error! ${error.message}`;
@@ -93,15 +104,15 @@ export function UserCashflows({address, superTokenList, mainnetProvider, isRecip
   let flowForm;
   if(isRecipient) {
     flowForm = (
-      <FlowForm tokens={superTokenList}  onFlowSubmit={()=>{}} onFlowFailed={()=>{}} />
-    )
+      <FlowForm address={connectedAddress} recipient={balanceAddress} tokenData={data.tokens} contracts={contracts} sfSDK={sfSDK}/>
+    );
   } 
-
 
   const style = {
     display: "flex",
     margin: "auto",
-    justifyContent: "space-evenly"
+    justifyContent: "space-evenly",
+    flexWrap: "wrap"
   }
 
 
@@ -109,14 +120,20 @@ export function UserCashflows({address, superTokenList, mainnetProvider, isRecip
     <div style={style}> 
       {flowForm}
       {data.tokens.map(tokenData => (
-        <TokenCashflows 
-          key={tokenData.symbol + address + "flows"}
-          address={address}
-          mainnetProvider={mainnetProvider}
-          token={tokenData.symbol}
-          inflows={tokenData.inflows}
-          outflows={tokenData.outflows}
-        />
+        <div key={tokenData.id + balanceAddress + "flows"}>
+          <TokenCashflows 
+            key={tokenData.id + balanceAddress + "flows"}
+            address={balanceAddress}
+            mainnetProvider={mainnetProvider}
+            token={tokenData.symbol}
+            tokenAddress={tokenData.id}
+            inflows={tokenData.inflows}
+            outflows={tokenData.outflows}
+            contracts={contracts}
+            isRecipient={true}
+            sfSDK={sfSDK}
+          />
+        </div>
       ))}
     </div>
   );

@@ -109,19 +109,6 @@ export default function FakeTokenMinters({provider, address, tokenList, tokenCon
       </div>
    </div>
   )
-  const template = [];
-  for(const token of tokenList) {
-    template.push(
-      <FakeTokenMinter
-        address={address}
-        key={"minter" + token}
-        provider={provider}
-        token={token}
-        tokenContract={tokenContracts[token]}
-      />
-    )
-  }
-  return template;
 }
 
 
