@@ -27,6 +27,7 @@ export function SuperTokenUpgraders({provider, address, tokenList, tokenContract
       <div style={style}>
         {tokenList.map(token => (
           <SuperTokenUpgrader
+            key={token + address + "-upgrader"}
             address={address}
             provider={provider}
             token={token}
@@ -53,20 +54,20 @@ export default function SuperTokenUpgrader({ address, token, tokenContract, supe
   // helper to display tx status to user
   const tx = Transactor(provider);
 
-  const onTokenApprove = e => {
+  const onTokenApprove = async (e) => {
     e.preventDefault();
 
+    const decimals = await tokenContract.decimals();
     // given the scope of the template, we use unlimited token approvals
-    // TODO: dynamic yo
-    const parsedBalance = utils.parseUnits("1000000000000", 18);
+    const parsedBalance = utils.parseUnits("1000000000000", decimals);
     // call contract 
     tx(tokenContract.approve(superTokenAddress, parsedBalance));
   };
 
-  const transformToken = (amount, transformType) => {
+  const transformToken = async (amount, transformType) => {
     // parse user submitted amount
-    // TODO: dynamic decimals
-    const parsedAmount = utils.parseUnits(amount.toString(), 18);
+    const decimals = await tokenContract.decimals();
+    const parsedAmount = utils.parseUnits(amount.toString(), decimals);
     // call contract 
     tx(superTokenContract[transformType](parsedAmount));
 

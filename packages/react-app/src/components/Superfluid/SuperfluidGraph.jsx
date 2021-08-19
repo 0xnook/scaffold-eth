@@ -42,7 +42,6 @@ const buildTokenMetadata = (tokens, chainId) => {
     };
     metadata[chainId].contracts = {...metadata[chainId].contracts, ...metadataPart};
   }
-    
   return metadata;
 }
 
@@ -126,7 +125,6 @@ export default function SuperfluidGraph({provider, tokenList, chainId, address, 
   // method to handle user recipient submission, throws error if user tries to add himself as recipient
   const addRecipient = (value) => {
     const recipient = value.address;
-    console.log("checkval ", recipient);
     if (recipient == address) {
       setErrMsg("Can't use your own address as a recipient address.");
       return;

@@ -29,6 +29,8 @@ export function FakeTokenMinter({provider, address, token, tokenContract}) {
     return <h1>...</h1>;
   }
 
+  const tx = Transactor(provider);
+
   // Handle fake token minting form submit
   const handleMintSubmit = async ({ amount }) => {
     const decimals = await tokenContract.decimals();
@@ -36,29 +38,7 @@ export function FakeTokenMinter({provider, address, token, tokenContract}) {
     const parsedAmount = utils.parseUnits(amount.toString(), decimals);
     
     // Execute mint tx
-    const contractCall = tokenContract.mint(address, parsedAmount);
-
-    // keep track of transaction status
-    const tx = Transactor(provider);
-    tx(contractCall, update => {
-      console.log("📡 Transaction Update:", update);
-      if (update && (update.status === "confirmed" || update.status === 1)) {
-        console.log(" 🍾 Transaction " + update.hash + " finished!");
-        console.log(
-          " ⛽️ " +
-            update.gasUsed +
-            "/" +
-            (update.gasLimit || update.gas) +
-            " @ " +
-            parseFloat(update.gasPrice) / 1000000000 +
-            " gwei",
-        );
-      }
-    }).then(result => {
-      console.log(result);
-    }).catch(err => {
-      setErrMsg(err);
-    });
+    tx(tokenContract.mint(address, parsedAmount));
   };
 
   const handleError = err => {

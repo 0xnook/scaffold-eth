@@ -33,6 +33,18 @@ export function TokenCashflows({address, token, mainnetProvider, inflows, outflo
     return <h1>...</h1>;
   }
 
+  let inflowSum = 0;
+  if (inflows.length) {
+    inflowSum = inflows.reduce((sum, flow) => sum + parseInt(flow.flowRate), 0);
+  }
+
+  let outflowSum = 0;
+  if (outflows.length) {
+    outflowSum = outflows.reduce((sum, flow) => sum + parseInt(flow.flowRate), 0);
+  }
+
+  const netflow = inflowSum - outflowSum;
+
   let inflowTemplate = "❌ No inflows";
   if(inflows.length) {
     inflowTemplate = inflows.map(flow => (
@@ -54,7 +66,7 @@ export function TokenCashflows({address, token, mainnetProvider, inflows, outflo
   let outflowTemplate = "❌ No outflows";
   if(outflows.length) {
     outflowTemplate = outflows.map(flow => (
-        <div key={"outflows-" + flow.owner + token}>
+        <div key={"outflows-" + flow.recipient.id + "-" + token}>
           <h4>Sender</h4>
           <Address ensProvider={mainnetProvider} address={address} fontSize={14} />
 
@@ -65,7 +77,6 @@ export function TokenCashflows({address, token, mainnetProvider, inflows, outflo
           <h4>Flow Rate</h4>
           {flow.flowRate}
         </div>
-        
       ))  
   }
 
@@ -84,6 +95,9 @@ export function TokenCashflows({address, token, mainnetProvider, inflows, outflo
 
       <h3>Outflows </h3>
       {outflowTemplate}
+
+      <h3>Netflow </h3>
+      {netflow}
     </div>
   );
 }
