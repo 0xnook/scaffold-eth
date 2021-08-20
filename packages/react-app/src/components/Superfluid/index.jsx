@@ -9,6 +9,7 @@ export default function Superfluid({
    tokens,
    mainnetProvider
 }) {
+
    return (
      <SuperfluidGraph
         address={address}
@@ -18,17 +19,6 @@ export default function Superfluid({
         mainnetProvider={mainnetProvider}
       />
    );
-
-   return (
-      <Super
-         mainnetProvider={mainnetProvider}
-         address={address}
-         network={network}
-         provider={provider}
-         tokenList={tokens}
-         chainId={chainId}
-      />
-   )
 }
 
 

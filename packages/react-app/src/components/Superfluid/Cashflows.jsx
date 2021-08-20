@@ -1,7 +1,8 @@
-import React from "react";
-import { Address, TokenBalance } from "../../components";
+import React, {useEffect, useReducer} from "react";
+import { Address  } from "../../components";
 import { gql, useQuery } from "@apollo/client";
 import FlowForm from "./FlowForm";
+import { BigNumber, utils } from "ethers";
 
 
 // Query to fetch cash-flows for a given user and tokens
@@ -24,11 +25,30 @@ const GET_TOKEN_FLOWS = gql`
           id
         }
       }
+      accountWithToken(where: {account: $owner}) {
+        balance
+      }
     }
   }
 `
 
-export function TokenCashflows({address, token, mainnetProvider, inflows, outflows, contracts}) {
+const reducer = (state, action) => {
+  switch(action.type) {
+    case "Set":
+      return action.payload;
+    case "Increment":
+      return state.add(action.payload);
+    default:
+      throw new Error("Invalid action");
+  }
+}
+
+export function TokenCashflows({address, token, balance, mainnetProvider, inflows, outflows}) {
+
+  const bigNumBalance = BigNumber.from(balance);
+  const [updatingBalance, dispatch] = useReducer(reducer, bigNumBalance);
+
+
   if(!address) {
     return <h1>...</h1>;
   }
@@ -46,6 +66,7 @@ export function TokenCashflows({address, token, mainnetProvider, inflows, outflo
   const netflow = inflowSum - outflowSum;
 
   let inflowTemplate = "❌ No inflows";
+
   if(inflows.length) {
     inflowTemplate = inflows.map(flow => (
         <div key={"inflows-" + flow.owner + token}>
@@ -80,15 +101,37 @@ export function TokenCashflows({address, token, mainnetProvider, inflows, outflo
       ))  
   }
 
+
+  useEffect(() => {
+    const desync = Math.abs(updatingBalance-bigNumBalance)
+    if (desync > netflow*100) {
+      dispatch({type: "Set", payload: bigNumBalance})
+    }
+
+    let frequency = 1000; // 1000 millisecs = 1 sec
+    let increment = netflow;
+
+    // if increment is big enough, update balance every quater of second
+    if(Math.round(netflow/250) != 0) {
+      frequency = 250;
+      increment = Math.round(netflow/frequency); 
+    }
+
+    const interval = setInterval(() => {
+      dispatch({type: "Increment", payload: increment});
+    }, frequency);
+
+    return function cleanup() {
+      clearInterval(interval);
+    }
+  }, [netflow, balance])
+
   return (
     <div>
-      <TokenBalance
-        img={token}
-        name={token}
-        provider={mainnetProvider}
-        address={address}
-        contracts={contracts}
-       />
+      <h4>
+      { token }  { utils.formatUnits(updatingBalance, 18) }
+      </h4>
+
 
       <h3>Inflows </h3>
       {inflowTemplate}
@@ -113,10 +156,12 @@ export function UserCashflows({balanceAddress, connectedAddress, superTokenList,
   const { loading, error, data } = useQuery(GET_TOKEN_FLOWS, { 
     variables: {owner: balanceAddress, tokens: superTokenList},
     pollInterval: 30000,
+    fetchPolicy: 'network-only'
   });
 
   if (loading) return 'Loading';
   if (error) return `Error! ${error.message}`;
+
   
   let flowForm;
   if(isRecipient) {
@@ -132,15 +177,18 @@ export function UserCashflows({balanceAddress, connectedAddress, superTokenList,
     flexWrap: "wrap"
   }
 
-
   return (
     <div style={style}> 
       {flowForm}
-      {data.tokens.map(tokenData => (
+      
+      {data.tokens.map(tokenData => { 
+        const balance = tokenData.accountWithToken.length ? tokenData.accountWithToken[0].balance : 0;
+        return (
         <div key={tokenData.id + balanceAddress + "flows"}>
           <TokenCashflows 
             key={tokenData.id + balanceAddress + "flows"}
             address={balanceAddress}
+            balance={balance}
             mainnetProvider={mainnetProvider}
             token={tokenData.symbol}
             tokenAddress={tokenData.id}
@@ -151,7 +199,7 @@ export function UserCashflows({balanceAddress, connectedAddress, superTokenList,
             sfSDK={sfSDK}
           />
         </div>
-      ))}
+      )})}
     </div>
   );
 }
