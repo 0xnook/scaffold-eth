@@ -1,8 +1,12 @@
 import React, {useEffect, useReducer} from "react";
-import { Address  } from "../../components";
+import { useTokenBalance } from "eth-hooks";
 import { gql, useQuery } from "@apollo/client";
-import FlowForm from "./FlowForm";
 import { BigNumber, utils } from "ethers";
+
+import { Address  } from "../../components";
+import FlowForm from "./FlowForm";
+
+
 
 
 // Query to fetch cash-flows for a given user and tokens
@@ -43,15 +47,15 @@ const reducer = (state, action) => {
   }
 }
 
-export function TokenCashflows({address, token, balance, mainnetProvider, inflows, outflows}) {
-
-  const bigNumBalance = BigNumber.from(balance);
-  const [updatingBalance, dispatch] = useReducer(reducer, bigNumBalance);
-
-
-  if(!address) {
+export function TokenCashflows({address, token, tokenContract, mainnetProvider, inflows, outflows}) {
+  if(!address || !tokenContract) {
     return <h1>...</h1>;
   }
+
+  const balance = useTokenBalance(tokenContract, address, 1777);
+
+
+  const [updatingBalance, dispatch] = useReducer(reducer, BigNumber.from(balance));
 
   let inflowSum = 0;
   if (inflows.length) {
@@ -103,18 +107,19 @@ export function TokenCashflows({address, token, balance, mainnetProvider, inflow
 
 
   useEffect(() => {
+    const bigNumBalance = BigNumber.from(balance);
     const desync = Math.abs(updatingBalance-bigNumBalance)
-    if (desync > netflow*100) {
-      dispatch({type: "Set", payload: bigNumBalance})
+    if (desync > Math.abs(netflow*100)) {
+      dispatch({type: "Set", payload: bigNumBalance});
     }
 
     let frequency = 1000; // 1000 millisecs = 1 sec
     let increment = netflow;
 
     // if increment is big enough, update balance every quater of second
-    if(Math.round(netflow/250) != 0) {
+    if(Math.round(netflow/4) != 0) {
       frequency = 250;
-      increment = Math.round(netflow/frequency); 
+      increment = Math.round(netflow/4); 
     }
 
     const interval = setInterval(() => {
@@ -128,6 +133,10 @@ export function TokenCashflows({address, token, balance, mainnetProvider, inflow
 
   return (
     <div>
+      <h4> 
+        { token }  {utils.formatUnits(balance, 18)}
+      </h4>
+
       <h4>
       { token }  { utils.formatUnits(updatingBalance, 18) }
       </h4>
@@ -191,6 +200,7 @@ export function UserCashflows({balanceAddress, connectedAddress, superTokenList,
             balance={balance}
             mainnetProvider={mainnetProvider}
             token={tokenData.symbol}
+            tokenContract={contracts[tokenData.symbol]}
             tokenAddress={tokenData.id}
             inflows={tokenData.inflows}
             outflows={tokenData.outflows}
