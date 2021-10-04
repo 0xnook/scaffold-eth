@@ -13,7 +13,6 @@ const themes = {
 
 const prevTheme = window.localStorage.getItem("theme");
 
-
 const targetNetwork = NETWORKS.kovan; // <------- select your target frontend network (rinkeby, xdai, kovan, matic)
 const subgraphUri = "https://api.thegraph.com/subgraphs/name/superfluid-finance/superfluid-" + targetNetwork.name
 

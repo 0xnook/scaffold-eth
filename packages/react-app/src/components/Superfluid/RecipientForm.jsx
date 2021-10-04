@@ -6,9 +6,9 @@ import { AddressInput } from "../../components";
 export default function RecipientForm({ onRecipientSubmit, onRecipientFailed, mainnetProvider }) {
   return (
     <Form
+      style={{maxWidth: "90%", margin: "auto"}}
       name="basic"
       layout="vertical"
-      // wrapperCol={{ span: 16 }}
       onFinish={onRecipientSubmit}
       onFinishFailed={onRecipientFailed}
       requiredMark={false}
@@ -23,7 +23,7 @@ export default function RecipientForm({ onRecipientSubmit, onRecipientFailed, ma
 
       <Form.Item>
         <Button type="primary" htmlType="submit">
-          Create new recipient
+          Add recipient to view
         </Button>
       </Form.Item>
     </Form>

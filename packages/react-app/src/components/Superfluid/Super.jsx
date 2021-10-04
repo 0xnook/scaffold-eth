@@ -11,7 +11,7 @@ import FakeTokenMinter from "./FakeTokenMinter";
 import SuperTokenUpgrader from "./SuperTokenUpgrader";
 
 // TODO: need to do free up (the sdk?) when exiting component to avoid memory leak
-export default function Super({ address, provider, mainnetProvider, tokens, chainId }) {
+export default function Super({ address, provider, mainnetProvider, tokenList, chainId }) {
   const [sfSDK, setSfSDK] = useState();
   const [recipients, setRecipients] = useState([]);
   const [sfUser, setSfUser] = useState({});
@@ -31,7 +31,7 @@ export default function Super({ address, provider, mainnetProvider, tokens, chai
       const sf = new SuperfluidSDK.Framework({
         ethers: provider,
         // ethers: new Web3Provider(window.ethereum),
-        tokens,
+        tokenList,
       });
       try {
         await sf.initialize();
@@ -51,7 +51,7 @@ export default function Super({ address, provider, mainnetProvider, tokens, chai
   // watch for sdk and load super fluid sdk user object for current user
   useEffect(async () => {
     if (sfSDK && tokenContracts) {
-      for (const token of tokens) {
+      for (const token of tokenList) {
         if (tokenContracts.hasOwnProperty(token + "x")) {
           const superTokenAddress = tokenContracts[token + "x"].address;
           const user = sfSDK.user({
@@ -73,7 +73,7 @@ export default function Super({ address, provider, mainnetProvider, tokens, chai
   useEffect(async () => {
     if (sfSDK && recipients.length && recipients[0].hasOwnProperty("address")) {
       for (const recipient of recipients) {
-        for (const token of tokens) {
+        for (const token of tokenList) {
           if (tokenContracts.hasOwnProperty(token + "x")) {
             const superTokenAddress = tokenContracts[token + "x"].address;
             const recipientUser = sfSDK.user({
@@ -143,7 +143,7 @@ export default function Super({ address, provider, mainnetProvider, tokens, chai
 
   const fakeTokenMinters = [];
   const superTokenUpgraders = [];
-  for (const token of tokens) {
+  for (const token of tokenList) {
     fakeTokenMinters.push(
       <FakeTokenMinter
         provider={provider}
@@ -187,14 +187,14 @@ export default function Super({ address, provider, mainnetProvider, tokens, chai
       />
 
       <Divider />
-      <CashflowDisplayer name={"Your"} tokens={tokens} sfUser={sfUser} />
+      <CashflowDisplayer name={"Your"} tokens={tokenList} sfUser={sfUser} />
     </div>,
   );
 
   if (sfRecipients) {
     for (const [address, sfRecipient] of Object.entries(sfRecipients)) {
       const recipientBalances = [];
-      for (const token of tokens) {
+      for (const token of tokenList) {
         if (sfRecipient[token]) {
           recipientBalances.push(
             <div>
@@ -222,14 +222,14 @@ export default function Super({ address, provider, mainnetProvider, tokens, chai
         <div style={{ border: "1px solid #cccccc", padding: 16, width: 400, marginTop: 64, alignSelf: "flex-start" }}>
           <Address ensProvider={mainnetProvider} address={address} />
 
-          <FlowForm tokens={tokens} sfRecipient={sfRecipient} onFlowSubmit={onFlowSubmit} onFlowFailed={onFlowFailed} />
+          <FlowForm tokens={tokenList} sfRecipient={sfRecipient} onFlowSubmit={onFlowSubmit} onFlowFailed={onFlowFailed} />
           <h3>Balances</h3>
 
           {recipientBalances}
 
           <Divider />
 
-          <CashflowDisplayer address={address} tokens={tokens} sfUser={sfRecipient} />
+          <CashflowDisplayer address={address} tokens={tokenList} sfUser={sfRecipient} />
         </div>,
       );
     }
